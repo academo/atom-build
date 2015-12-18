@@ -3,6 +3,7 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 import specHelpers from 'atom-build-spec-helpers';
+import os from 'os';
 
 describe('Error Match', () => {
   const errorMatchAtomBuildFile = __dirname + '/fixture/.atom-build.error-match.json';
@@ -12,13 +13,16 @@ describe('Error Match', () => {
   const errorMatchMultiFirstAtomBuildFile = __dirname + '/fixture/.atom-build.error-match-multiple-first.json';
   const errorMatchLongOutputAtomBuildFile = __dirname + '/fixture/.atom-build.error-match-long-output.json';
   const errorMatchMultiMatcherAtomBuildFile = __dirname + '/fixture/.atom-build.error-match-multiple-errorMatch.json';
-
+  const originalHomedirFn = os.homedir;
+  
   let directory = null;
   let workspaceElement = null;
 
   temp.track();
 
   beforeEach(() => {
+    createdHomeDir = temp.mkdirSync('atom-build-spec-home');
+    os.homedir = () => createdHomeDir;
     directory = fs.realpathSync(temp.mkdirSync({ prefix: 'atom-build-spec-' })) + '/';
     atom.project.setPaths([ directory ]);
 
@@ -42,6 +46,7 @@ describe('Error Match', () => {
   });
 
   afterEach(() => {
+    os.homedir = originalHomedirFn;
     fs.removeSync(directory);
   });
 

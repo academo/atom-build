@@ -3,6 +3,7 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 import specHelpers from 'atom-build-spec-helpers';
+import os from 'os';
 
 describe('Build', () => {
   const goodAtomBuildfile = __dirname + '/fixture/.atom-build.json';
@@ -12,6 +13,7 @@ describe('Build', () => {
   const shTrueAtomBuildFile = __dirname + '/fixture/.atom-build.sh-true.json';
   const shDefaultAtomBuildFile = __dirname + '/fixture/.atom-build.sh-default.json';
   const syntaxErrorAtomBuildFile = __dirname + '/fixture/.atom-build.syntax-error.json';
+  const originalHomedirFn = os.homedir;
 
   let directory = null;
   let workspaceElement = null;
@@ -35,6 +37,8 @@ describe('Build', () => {
         return specHelpers.vouch(fs.realpath, dir);
       }).then( (dir) => {
         directory = dir + '/';
+        createdHomeDir = temp.mkdirSync('atom-build-spec-home');
+        os.homedir = () => createdHomeDir;
         atom.project.setPaths([ directory ]);
         return atom.packages.activatePackage('build');
       });
@@ -43,6 +47,7 @@ describe('Build', () => {
 
   afterEach(() => {
     fs.removeSync(directory);
+    os.homedir = originalHomedirFn;
   });
 
   describe('when package is activated', () => {

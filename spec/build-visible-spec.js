@@ -3,10 +3,12 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 import specHelpers from 'atom-build-spec-helpers';
+import os from 'os';
 
 describe('Visible', () => {
   let directory = null;
   let workspaceElement = null;
+  const originalHomedirFn = os.homedir;
 
   temp.track();
 
@@ -31,6 +33,8 @@ describe('Visible', () => {
       return specHelpers.vouch(temp.mkdir, { prefix: 'atom-build-spec-' }).then( (dir) => {
         return specHelpers.vouch(fs.realpath, dir);
       }).then( (dir) => {
+        createdHomeDir = temp.mkdirSync('atom-build-spec-home');
+        os.homedir = () => createdHomeDir;
         directory = dir + '/';
         atom.project.setPaths([ directory ]);
       });
@@ -39,6 +43,7 @@ describe('Visible', () => {
 
   afterEach(() => {
     fs.removeSync(directory);
+    os.homedir = originalHomedirFn;
   });
 
   describe('when package is activated with panel visibility set to Keep Visible', () => {

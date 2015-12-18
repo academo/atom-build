@@ -4,11 +4,12 @@ import _ from 'lodash';
 import fs from 'fs-extra';
 import temp from 'temp';
 import specHelpers from 'atom-build-spec-helpers';
+import os from 'os';
 
 describe('Target', () => {
   let directory = null;
   let workspaceElement = null;
-
+  const originalHomedirFn = os.homedir;
   temp.track();
 
   beforeEach(() => {
@@ -28,12 +29,15 @@ describe('Target', () => {
       }).then((dir) => {
         directory = dir + '/';
         atom.project.setPaths([ directory ]);
+        createdHomeDir = temp.mkdirSync('atom-build-spec-home');
+        os.homedir = () => createdHomeDir;
         return atom.packages.activatePackage('build');
       });
     });
   });
 
   afterEach(() => {
+    os.homedir = originalHomedirFn;
     fs.removeSync(directory);
   });
 

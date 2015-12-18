@@ -3,14 +3,19 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 import specHelpers from 'atom-build-spec-helpers';
+import os from 'os';
 
 describe('Keymap', () => {
   let directory = null;
   let workspaceElement = null;
+  const originalHomedirFn = os.homedir;
+  
 
   temp.track();
 
   beforeEach(() => {
+    createdHomeDir = temp.mkdirSync('atom-build-spec-home');
+    os.homedir = () => createdHomeDir;
     directory = fs.realpathSync(temp.mkdirSync({ prefix: 'atom-build-spec-' })) + '/';
     atom.project.setPaths([ directory ]);
 
@@ -32,6 +37,7 @@ describe('Keymap', () => {
   });
 
   afterEach(() => {
+    os.homedir = originalHomedirFn;
     fs.removeSync(directory);
   });
 

@@ -3,21 +3,46 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 import CustomFile from '../lib/atom-build.js';
+import os from 'os';
 
 describe('custom provider', () => {
   let builder;
+  let createdHomeDir;
   let directory = null;
+  const originalHomedirFn = os.homedir;
 
   temp.track();
 
   beforeEach(() => {
+    createdHomeDir = temp.mkdirSync('atom-build-spec-home');
     directory = fs.realpathSync(temp.mkdirSync({ prefix: 'atom-build-spec-' })) + '/';
     atom.project.setPaths([ directory ]);
+    os.homedir = () => createdHomeDir;
     builder = new CustomFile(directory);
   });
 
   afterEach(() => {
+    os.homedir = originalHomedirFn;
     fs.removeSync(directory);
+  });
+  
+  it('when there is no .atom-build config file in any elegible directory', () => {
+       expect(builder.isEligible()).toEqual(false);
+  });
+  
+  describe('when .atom-build config is on home directory', () => {
+      it('should find json file in home directory', () => {
+          fs.writeFileSync(createdHomeDir + '/.atom-build.json', fs.readFileSync(__dirname + '/fixture/.atom-build.json'));
+          expect(builder.isEligible()).toEqual(true);
+      });
+      it('should find cson file in home directory', () => {
+          fs.writeFileSync(createdHomeDir + '/.atom-build.cson', fs.readFileSync(__dirname + '/fixture/.atom-build.cson'));
+          expect(builder.isEligible()).toEqual(true);
+      });
+      it('should find yml file in home directory', () => {
+          fs.writeFileSync(createdHomeDir + '/.atom-build.yml', fs.readFileSync(__dirname + '/fixture/.atom-build.yml'));
+          expect(builder.isEligible()).toEqual(true);
+      });
   });
 
   describe('when .atom-build.cson exists', () => {
